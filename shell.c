@@ -3,6 +3,7 @@
 
 bool parse(char *, char *, char *);
 int isCommand(char *);
+void printCommand(int);
 
 int main(){
 char line[255];
@@ -30,7 +31,8 @@ return false;
 }
 
 int isCommand(char * token){
-    // compare input string token to a list of known commands
+    // 1) compare input string token to a list of known commands
+    // 2) return command code associated with that command
     if(strcmp(token, "exit")==0)
         return 0;
     else if(strcmp(token, "cd")==0)
@@ -45,3 +47,35 @@ int isCommand(char * token){
         return 5;
     else return -1;
 }
+
+void printCommand(int cmdCode){
+    // print the name of the command based on the command code recived
+    printf( "\nCommand Received: ");
+    switch (cmdCode) {
+        case -1:
+            printf( "none");
+            break;
+        case 0:
+            printf( "exit");
+            break;
+        case 1:
+            printf( "cd");
+            break;
+        case 2:
+            printf( "echo");
+            break;
+        case 3:
+            printf( "etime");
+            break;
+        case 4:
+            printf( "io");
+            break;
+        case 5:
+            printf( "ls");
+            break;
+
+        default:
+            break;
+    }
+}
+
