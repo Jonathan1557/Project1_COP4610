@@ -10,6 +10,7 @@ char line[255];
 char command[255];
 char arg[255];
 
+
 while(strcmp(line, "exit") != 0)
 {
 printf("myshell> ");
@@ -17,9 +18,9 @@ scanf("%s",line);
  while(parse(line, command, arg))
   {
    // execute the current operation
+    
   }
 }
-printf("exit\n");
 return 0;
 }
 
@@ -29,7 +30,11 @@ bool parse(char * line, char * command, char * arg){
 	int commandID;
 	command = strtok(line, " ");
 	commandID = isCommand(command);
-	printf("%s\n", command);
+
+	printf("%d\n",commandID);
+
+
+
 	if (commandID != -1) { return true; }
 
 return false;
