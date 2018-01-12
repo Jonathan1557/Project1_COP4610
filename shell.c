@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 bool parse(char *, char *, char *);
 int isCommand(char *);
@@ -25,6 +26,11 @@ return 0;
 bool parse(char * line, char * command, char * arg){
 // find the first command in line, cut and paste it into command and return true
 // return false if there are no more commands in command. If there is an invalid command in command, return false and give an error message
+	int commandID;
+	command = strtok(line, " ");
+	commandID = isCommand(command);
+	printf("%s\n", command);
+	if (commandID != -1) { return true; }
 
 return false;
 }
