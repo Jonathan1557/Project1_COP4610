@@ -9,19 +9,21 @@ void printCommand(int);
 int main(){
 char line[255];
 char command[255];
-char arg[255];
+const char* arg[255];   // an array of "strings"
 
 
 while(strcmp(line, "exit") != 0)
 {
 printf("myshell> ");
 scanf("%s",line);
+    
  while(parse(line, command, arg))
   {
    // execute the current operation
     
   }
 }
+    
 return 0;
 }
 
@@ -29,12 +31,30 @@ bool parse(char * line, char * command, char * arg){
 // find the first command in line, cut and paste it into command and return true
 // return false if there are no more commands in command. If there is an invalid command in command, return false and give an error message
 	int commandID;
-	command = strtok(line, " ");
-	commandID = isCommand(command);
+	//command = strtok(line, " ");
+    const char* tempArgs[255]; // temporary arg list, to be copied to main arg list
+    int argCount=0;
+    
+    // tokenize line and store command/arguments
+    char* token = strtok(line, " ");
+    while (token) {
+        printf("token: %s\n", token);
+        if (isCommand(token))
+            commandID = isCommand(token);
+        else {
+            tempArgs[argCount] = token;
+            argCount++;
+        }
+        printCommand;
+        printf("(%d)\n",commandID);
+        token = strtok(NULL, " ");
+    }
+    
+    strcpy(arg, tempArgs);  // copy args to main array
+    
+    //commandID = isCommand(token);
 
-	printf("%d\n",commandID);
-
-
+	//printf("%d\n",commandID);
 
 	if (commandID != -1) { return true; }
 
