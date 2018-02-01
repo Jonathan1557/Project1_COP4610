@@ -65,7 +65,7 @@ return 0;
 }
 
 
-int exeRedirOutput(char ** arg, char * input){
+int exeRedirOutput(char ** arg, char * output){
 int status;
 pid_t pid = fork();
 if(pid == -1){return 1;}
@@ -74,8 +74,8 @@ fclose(stdout);
 
 printf("Test\n"); // this shouldn't print if it closed stdout
 
-int fd = open(input, "-w");
-dup2(fd, stdout);
+int fd = (int)open(output, "-w");
+dup2(fd, 1);
 
 execv(arg[0], arg);
 }
