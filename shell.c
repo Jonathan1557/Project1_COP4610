@@ -1,64 +1,127 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
+#include "functionality.c"
 
-bool parse(char *, char *, char *);
+char *** parse(char *);
 int isCommand(char *);
 void printCommand(int);
 
 int main(){
-char line[255];
-char command[255];
-const char* arg[255];   // an array of "strings"
-
+char * line;
+line = malloc(255);
+size_t size = 255;
+char *** arg;
 
 while(strcmp(line, "exit") != 0)
 {
 printf("myshell> ");
-scanf("%s",line);
-    
- while(parse(line, command, arg))
-  {
-   // execute the current operation
-    
-  }
+//scanf("%s",line);
+
+getline(&line, &size, stdin);
+
+arg = parse(line);     
+
+int i = 0;
+while(arg[0][i] != 0) {printf("%s\n", arg[0][i]);i++;}
+
 }
     
 return 0;
 }
 
-bool parse(char * line, char * command, char * arg){
-// find the first command in line, cut and paste it into command and return true
-// return false if there are no more commands in command. If there is an invalid command in command, return false and give an error message
-	int commandID;
-	//command = strtok(line, " ");
-    const char* tempArgs[255]; // temporary arg list, to be copied to main arg list
-    int argCount=0;
-    
-    // tokenize line and store command/arguments
-    char* token = strtok(line, " ");
-    while (token) {
-        printf("token: %s\n", token);
-        if (isCommand(token))
-            commandID = isCommand(token);
-        else {
-            tempArgs[argCount] = token;
-            argCount++;
-        }
-        printCommand;
-        printf("(%d)\n",commandID);
-        token = strtok(NULL, " ");
-    }
-    
-    strcpy(arg, tempArgs);  // copy args to main array
-    
-    //commandID = isCommand(token);
+char *** parse(char * line){
+char *** arg;
+int cmdcount = 1;
+int argcount = 1;
 
-	//printf("%d\n",commandID);
+//first pass, determine cmdcount
+char * itr = line;
+while(*itr != '\0'){
+if(*itr == '|'){cmdcount++;};
+itr++;
+}
 
-	if (commandID != -1) { return true; }
 
-return false;
+arg = malloc(cmdcount + 1); // we know how many commands there are, so allocate space for them
+arg[cmdcount] = 0;	// terminate the args with a null pointer;
+itr = line;
+int i = 0;
+int a = 1;
+char * start = line;	// this is where this command starts
+char * nxtstart;	// this is where the next command starts
+
+
+itr++;
+while(*itr != '\0' && *itr != '|'){
+if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
+else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
+else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
+itr++;
+}
+
+arg[i] = malloc(argcount + 1);
+arg[i][argcount] = 0; // terminate it with a null pointer
+nxtstart = itr;	// this is where the next command starts
+
+
+arg[i][0] = start;
+itr = start;
+a = 1;
+
+itr++;
+while(*itr != '\0' && *itr != '|'){
+if(*itr == '<' | *itr == '>' | *itr == '&'){arg[i][a++] = itr;}
+else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){arg[i][a++] = itr;}
+else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){arg[i][a++] = itr;}
+itr++;
+}
+
+
+if(cmdcount > 1){
+while(++i < cmdcount){
+itr = nxtstart;
+start = nxtstart;
+argcount = 1;
+
+itr++;
+while(*itr != '\0' && *itr != '|'){
+if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
+else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
+itr++;
+}
+
+arg[i] = malloc(argcount + 1);
+arg[i][argcount] = 0; // terminate it with a null pointer
+nxtstart = itr;	// this is where the next command starts
+
+arg[i][0] = start;
+itr = start;
+a = 1;
+
+itr++;
+while(*itr != '\0' && *itr != '|'){
+if(*itr == '<' | *itr == '>' | *itr == '&'){arg[i][a++] = itr;}
+else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){arg[i][a++] = itr;}
+else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){arg[i][a++] = itr;}
+itr++;
+}
+
+}}
+
+
+// turn all spaces and | into null chars
+itr = line;
+while(*itr != '\0'){
+if(*itr == ' ' | *itr == '|' | *itr == '\n'){
+	*itr = '\0'; 
+} 
+itr++;
+}
+
+return arg;
 }
 
 int isCommand(char * token){

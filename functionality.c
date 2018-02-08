@@ -14,8 +14,9 @@ char * translate(char * s);
 int myexe(char ** arg);
 int exeRedirOutput(char ** arg, char * output);
 int exeRedirInput(char ** arg, char * input);
+int argcount(char *** arg);
 
-
+/*
 int main()
 {
 
@@ -51,7 +52,7 @@ arg[2][1] = "M";
 arg[2][2] = 0;
 
 arg[3][0] = command;
-arg[3][1] = "a";
+arg[3][1] = "E";
 arg[3][2] = 0;
 
 
@@ -68,7 +69,7 @@ pipeManager(arg, 3);
 }
 
 return 0;
-}
+}*/
 
 char * translate(char * s){
  if(s[0] == '$'){
@@ -201,4 +202,11 @@ else{
  waitpid(pid, &status, 0);
  }
 
+}
+
+int argcount(char *** arg){
+int count = 0;
+int i = 0;
+while(arg[i++] != 0){count++;}
+return count;
 }
