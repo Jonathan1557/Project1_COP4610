@@ -24,6 +24,7 @@ int isDir(const char* path);
 char * getPWD(void);
 char * getHOME(void);
 char * getPATH(void);
+char * removeCWDSymbol(char* path);
 
 // PATH RESOLTION:
 // MODES (inputs for expansion)
@@ -118,8 +119,9 @@ char * expand_path(char *path, int cmd_p){
 		if (fileExists(path)) {				// if file exists in current directory
 			char abs_path[255];
 			strcpy(abs_path, getPWD());	// test_path = single_path
-			strcat(abs_path, "/");			// test_path + '/'
+			strcat(abs_path, "/");		// test_path + '/'
 			strcat(abs_path, path);		// test_path + cmd
+			//strcpy(abs_path, removeCWDSymbol(abs_path));	// remove any cwd symbol
 			return abs_path;
 			//return "This file exists.\n";
 		}
@@ -260,5 +262,32 @@ char * getPATH() {
 
 char * getPWD() {
 	return translate("$PWD");
+}
+
+char * removeCWDSymbol(char* path) {
+	// removes the CWD symbol (./) from a path
+	char pathLeadingCWDSymbol[255];
+	char pathTrailingCWDSymbol[255];
+	char pathMinusCWDSymbol[255];
+	int CWDSymbolFound = 0;
+	
+	int i=0;
+	while (i<strlen(path)) {
+		if (CWDSymbolFound==0) {
+			pathLeadingCWDSymbol[i] = path[i];	// add to cwd-leading path
+		}
+		if (path[i-1]!='.' && path[i]=='.' && path[i+1]=='/') {	// if cwd symbol found
+			CWDSymbolFound = 1;					// flag as found
+			i = i + 2;							// skip past the cwd symbol
+		}
+		if (CWDSymbolFound==1) {
+			pathTrailingCWDSymbol[i] = path[i];	// add to cwd-trailing path
+		}
+		i++;
+	}
+	
+	strcat(pathMinusCWDSymbol, pathLeadingCWDSymbol);
+	strcat(pathMinusCWDSymbol, pathTrailingCWDSymbol);
+	return pathMinusCWDSymbol;
 }
 
