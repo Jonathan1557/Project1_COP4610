@@ -26,7 +26,9 @@ char * getPWD(void);
 char * getHOME(void);
 char * getPATH(void);
 
+
 int main(){
+<<<<<<< HEAD
 	char * line;
 	line = malloc(255);
 	size_t size = 255;
@@ -57,6 +59,63 @@ int main(){
 	}
 	return 0;
 }
+=======
+char * line = "";
+line = malloc(255);
+size_t size = 255;
+char *** arg;
+
+int status;
+pid_t pid;
+
+
+LOOP:
+
+printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
+
+getline(&line, &size, stdin);
+arg = parse(line);     
+
+//while(strcmp(line, "exit") != 0){
+
+pid = fork();
+
+if(pid == 0){
+control(arg);
+}
+else{
+waitpid(pid, &status,0);
+if(strcmp(arg[0][0], "exit") != 0){goto LOOP;}
+}
+//} // end of while loop    
+return 0;
+}
+
+
+
+/*
+int main()
+{
+char * command = "/bin/ls";
+char *** arg;
+arg = malloc(200);
+arg[0] = malloc(2);
+arg[1] = malloc(2);
+arg[2] = 0;
+
+arg[0][0] = command;
+arg[0][1] = 0;
+
+command = "/bin/more";
+arg[1][0] = command;
+arg[1][1] = 0;
+
+pipeSolo(arg);
+
+return 0;
+}*/
+
+>>>>>>> origin/master
 
 char *** parse(char * line){
 char *** arg;
