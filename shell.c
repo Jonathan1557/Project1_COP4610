@@ -5,172 +5,141 @@
 #include <stdlib.h>
 #include "functionality.c"
 
+char * nxtoken(char *);
+char * advance(char *);
+char * firstadvance(char *);
 char *** parse(char *);
 int isCommand(char *);
 void printCommand(int);
 
 int main(){
-	char * line;
-	line = malloc(255);
-	size_t size = 255;
-	char *** arg;
+char * line;
+line = malloc(255);
+size_t size = 255;
+char *** arg;
 
-	while(strcmp(line, "exit") != 0)
-	{
-	printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
+while(strcmp(line, "exit") != 0)
+{
+printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
 
-	getline(&line, &size, stdin);
+getline(&line, &size, stdin);
 
-	arg = parse(line);
+arg = parse(line);     
 
+int i = 0;
+int a = 0;
 
-	int i = 0;
-	int a = 0;
-
-	/*while(i < argcount(arg))
-	{
-		while(arg[i][a] != 0)
-		{
-		arg[i][a] = translate(arg[i][a]);
-		a++;
-		}
-	i++;
+while(i < argcount(arg)){
+while(arg[i][a] != 0) {
+//	printf("%d\n", arg[i][a]);
+	printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+	a++;
 	}
-	i = 0;
-	a = 0;*/
+i++;
+a=0;
+}
 
 
-	while(i < argcount(arg)){
-		while(arg[i][a] != 0) {
-			printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
-			printf("%d\n", arg[i][a]);
-			a++;
-			}
-		i++;
-		a=0;
-	}
-
-
-	}
-	return 0;
-}	// end of main()
+}    
+return 0;
+}
 
 char *** parse(char * line){
-	char *** arg;
-	int cmdcount = 1;
-	int argcount = 1;
+char *** arg;
+int cmdcount = 1;
+int argcount = 1;
 
-	//first pass, determine cmdcount
-	char * itr = line;
-	while(*itr != '\0'){
-		if(*itr == '|'){cmdcount++;};
-		itr++;
+//first pass, determine cmdcount
+char * itr = line;
+while(*itr != '\0'){
+if(*itr == '|'){cmdcount++;};
+itr++;
+}
+
+arg = malloc(200); // we know how many commands there are, so allocate space for them
+arg[cmdcount] = 0;	// terminate the args with a null pointer;
+itr = line;
+int i = 0;
+int a;
+char * start;
+char * nxtstart = line;	// this is where the next command starts
+
+while(i < cmdcount){
+argcount = 1;
+start  = firstadvance(nxtstart);		// this is where this command starts
+itr = start;
+itr++;
+while(*itr != '\0' && *itr != '|'){
+if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
+else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
+else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
+itr++;
+}
+
+//arg[i] = malloc(argcount + 1);					//set arg[i] to hold all its arguments
+arg[i] = malloc(200);					//set arg[i] to hold all its arguments
+arg[i][argcount] = 0; 						// terminate it with a null pointer
+nxtstart = itr;							// this is where the next command starts
+
+//arg[i][0] = start;
+itr = start;
+
+// set each argument in arg[i]
+a = 0;
+while(a < argcount){
+arg[i][a] = nxtoken(itr);
+itr = advance(itr);
+a++;
+}
+
+arg[i][argcount] = 0;
+
+i++;
+} 
+
+arg[cmdcount] = 0; 			// make sure arg is null terminated
+
+return arg;
+}
+
+char * nxtoken(char * line){
+char * token = malloc(strlen(line));
+strcpy(token, line);
+// change char after token to null 
+char * itr = token;
+while(*itr != '\0'){
+if(*itr == ' ' | *itr == '|' | *itr == '\n'){
+	*itr = '\0'; 
+} 
+itr++;
+}
+
+return token;
+}
+
+char * firstadvance(char * line){
+char * itr = line;
+while(itr != 0){
+  if(*itr != ' ' && *itr != '&' && *itr != '|'){return itr;}
+  itr++;
+ }
+return 0;
+}
+
+
+char * advance(char * line){	// returns the first char of the next token, or null if there are no more tokens.
+char * itr = line;
+char * start = itr; 		// this is the starting position
+while(*itr != '\0' && *itr != '|'){
+	if(itr != start){
+		if(*itr == '<' | *itr == '>' | *itr == '&'){return itr;}
+		else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){return itr;}
+		else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){return itr;}
 	}
-
-	arg = malloc(cmdcount + 1); // we know how many commands there are, so allocate space for them
-	arg[cmdcount] = 0;	// terminate the args with a null pointer;
-	
-	itr = line;
-	int i = 0;
-	int a = 1;
-	char * start  = line;	// this is where this command starts
-	char * nxtstart;	// this is where the next command starts
-
-	itr++;
-	while(*itr != '\0' && *itr != '|'){
-		if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
-		else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
-		else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
-		itr++;
-	}
-
-	arg[i] = malloc(argcount + 1);
-	arg[i][argcount] = 0; // terminate it with a null pointer
-	nxtstart = itr;	// this is where the next command starts
-
-
-	arg[i][0] = start;
-	itr = start;
-	a = 1;
-
-
-
-	itr++;
-	while(*itr != '\0' && *itr != '|'){
-		if(*itr == '<' | *itr == '>' | *itr == '&'){arg[i][a++] = itr;}
-		else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){arg[i][a++] = itr;}
-		else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){arg[i][a++] = itr;}
-		itr++;
-	}
-
-	//char ** arg0backup = malloc(argcount + 1);
-	//i = 0;
-	//while(i < argcount + 1){arg0backup[i] = arg[0][i];i++;}
-
-	//printf("arg[0] = %d\n",arg[0]); // *************************************************************
-	//printf("arg[0][0] = %d\n",arg[0][0]); // *************************************************************
-
-
-	if(cmdcount > 1){
-	i = 0;
-	while(++i < cmdcount){
-
-	itr = nxtstart;
-	start = nxtstart;
-	argcount = 1;
-
-	itr++;
-	while(*itr != '\0' && *itr != '|'){
-		if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
-		else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
-		itr++;
-	}
-
-
-	char * temp = arg[0][3];		     // store arg[0][3], because
-	arg[i] = calloc(argcount + 1, argcount + 1); // this line somehow changes arg[0][3]
-	arg[0][3] = temp;			     // restore arg[0][3]
-
-	arg[i][argcount] = 0; // terminate it with a null pointer
-
-
-	nxtstart = itr;	// this is where the next command starts
-
-
-	itr = start;
-	while(*itr == ' ' | *itr == '|'){itr++;}
-	arg[i][0] = itr;
-	a = 1;
-
-	itr++;
-	while(*itr != '\0' && *itr != '|'){
-		if(*itr == '<' | *itr == '>' | *itr == '&'){arg[i][a++] = itr;}
-		else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){arg[i][a++] = itr;}
-		else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){arg[i][a++] = itr;}
-		itr++;
-	}
-
-	}}
-
-	//i = 0;
-	//while(i < argcount + 1){arg[0][i] = arg0backup[i];i++;}
-
-	//printf("arg[0] = %d\n",arg[0]); // *************************************************************
-	//printf("arg[0][0] = %d\n",arg[0][0]); // *************************************************************
-
-
-	// turn all spaces and | into null chars
-	itr = line;
-	while(*itr != '\0'){
-		if(*itr == ' ' | *itr == '|' | *itr == '\n'){
-			*itr = '\0';
-		}
-		itr++;
-	}
-
-	arg[cmdcount] = 0; // make sure arg is null terminated
-	return arg;
-}	// end of parse()
+itr++;
+}
+return 0;
+}
 
 int isCommand(char * token){
     // 1) compare input string token to a list of known commands
