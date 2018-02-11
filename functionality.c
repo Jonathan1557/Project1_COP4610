@@ -7,7 +7,11 @@
 #define S_COMMAND 33261
 #define S_DIR 16749
 #define S_FAILURE 194
+#define INPUT 1 
+#define OUTPUT 2
 
+void control(char *** arg);
+void exeManager(char ** arg);
 void pipeSolo(char *** arg);
 void pipeManager(char *** arg, int i);
 char * translate(char * s);
@@ -15,6 +19,35 @@ int myexe(char ** arg);
 int exeRedirOutput(char ** arg, char * output);
 int exeRedirInput(char ** arg, char * input);
 int argcount(char *** arg);
+
+void control(char *** arg){
+int count = argcount(arg);
+if(count == 0){return;}
+if(count == 1){exeManager(arg[0]);}
+else if(count == 2){pipeSolo(arg);}
+else{pipeManager(arg, count - 1);}
+}
+
+void exeManager(char ** arg){ // this functions decides if a command needs io redirection
+int i = 0;
+char * itr = arg[0];
+char * file;
+int redir = 0;
+while(itr != 0 && (strcmp(itr,">") != 0 && strcmp(itr, "<") != 0)){
+itr = arg[++i];} // if there is a > or < symbol, set itr to that
+ if(itr != 0){
+  if(strcmp(itr, "<") == 0){redir = INPUT;}
+  if(strcmp(itr,">")==0){redir = OUTPUT;}
+ }
+if(redir == 0){myexe(arg);}
+else{
+  file = arg[i + 1];
+  arg[i] = 0;
+ }
+if(redir == INPUT){exeRedirInput(arg, file);}
+if(redir == OUTPUT){exeRedirOutput(arg, file);}
+}
+
 
 /*
 int main()
@@ -30,32 +63,18 @@ word = translate(word);
 
 char * command = "/bin/ls";
 char *** arg;
-arg = malloc(4);
-arg[0] = malloc(4);
+arg = malloc(2);
+arg[0] = malloc(2);
 arg[1] = malloc(2);
-arg[2] = malloc(3);
-arg[3] = malloc(3);
+arg[2] = 0;
 
 arg[0][0] = command;
 //arg[0][1] = "-al";
-arg[0][1] = word; 
-arg[0][2] = 0;
-arg[0][3] = 0;
+arg[0][1] = 0; 
 
 command = "/bin/more";
 arg[1][0] = command;
 arg[1][1] = 0;
-
-command = "/bin/grep";
-arg[2][0] = command;
-arg[2][1] = "M";
-arg[2][2] = 0;
-
-arg[3][0] = command;
-arg[3][1] = "E";
-arg[3][2] = 0;
-
-
 
 stat(command, &buf);
 
@@ -65,15 +84,19 @@ if(buf.st_mode == S_COMMAND)
 //char * input = "input.txt";
 //exeRedirOutput(arg[0], input);
 //exeRedirInput(arg[1], input);
-pipeManager(arg, 3);
+//pipeManager(arg, 3);
+pipeSolo(arg);
 }
 
 return 0;
-}*/
+}
+*/
 
 char * translate(char * s){
  if(s[0] == '$'){
  s = getenv(++s);}
+ else if(s[0] == '~'){
+ s = getenv("HOME");}
  return s;
 }
 
@@ -144,7 +167,6 @@ int fd[2];
 pipe(fd);
 pid_t pid2 = fork();
 	if(pid2 == 0){
-
 	fclose(stdout);				// this section does the output of the first pipe
 	dup2(fd[1],1);
 		if(i == 1){
@@ -164,7 +186,7 @@ pid_t pid2 = fork();
 	dup2(save_out, STDOUT_FILENO);		// final command
 	close(fd[0]);
 	close(fd[1]);
-	myexe(arg[i]);
+	exeManager(arg[i]);
 	}
 }
 else{
@@ -174,6 +196,7 @@ else{
 }
 
 void pipeSolo(char *** arg){
+
 
 int status;
 pid_t pid = fork();
@@ -186,18 +209,57 @@ int fd[2];
 pipe(fd);
 fclose(stdout);				// this section does the first command
 dup2(fd[1],1);
+
+//exeManager(arg[0]);
 myexe(arg[0]);
 
 close(STDIN_FILENO);			// close stdin and use the pipe for input from now on
 dup2(fd[0],0);
+
 
 open(fileno(stdout));			// re-open stdout
 dup2(save_out, STDOUT_FILENO);		// final command
 
 close(fd[0]);
 close(fd[1]);
-myexe(arg[2]);
+//exeManager(arg[1]);
+myexe(arg[1]);
 }
+
+/*
+int status;
+pid_t pid = fork();
+if(pid == 0)
+ {
+   int fd[2];
+   pipe(fd);
+   int status2;
+int save_in, save_out; // ******************* 
+save_in = dup(STDIN_FILENO); // ******************** this bit comes from stackoverflow
+save_out = dup(STDOUT_FILENO); // ****************
+
+   pid_t pid2 = fork();
+	if(pid2 == 0){
+
+	printf("CLOSING STDOUT\n");//**************************************************************
+	fclose(stdout);				// this section does the output of the first pipe
+	dup2(fd[1],1);
+	
+	exeManager(arg[0]);	
+	}
+
+	else{
+	 waitpid(pid2, &status2, 0);
+
+	open(fileno(stdout));			// re-open stdout
+	dup2(save_out, STDOUT_FILENO);		// final command
+	 fclose(stdin);
+	 dup2(fd[0],0);
+	printf("CLOSING STDIN\n");//**************************************************************
+	 exeManager(arg[1]);
+	}
+ }
+*/
 else{
  waitpid(pid, &status, 0);
  }
