@@ -52,7 +52,7 @@ char * resolve_path(char * arg)
 {
 	// expand each arg to its absolute path
 	if (arg!=NULL) {
-		return expand_path(arg, 2);
+		return expand_path(arg, 0);
 	}
 	else return "resolve_path() FAILURE";
 }
@@ -99,7 +99,7 @@ char * expand_path(char *path, int cmd_p){
 					printf("test_path: %s\n", test_path);
 					
 					// check if path contains the command
-					if (is_external_command(test_path)) {
+					if (is_external_command(test_path) && fileExists(test_path)) {
 						return path = test_path;	// if so, return this path
 					}
 					
@@ -115,7 +115,34 @@ char * expand_path(char *path, int cmd_p){
 	// Step 3: if argument, get path if it exists
 	else {
 		// check for arg in current directory
+		if (fileExists(path)) {				// if file exists in current directory
+			char abs_path[255];
+			strcpy(abs_path, getPWD());	// test_path = single_path
+			strcat(abs_path, "/");			// test_path + '/'
+			strcat(abs_path, path);		// test_path + cmd
+			return abs_path;
+			//return "This file exists.\n";
+		}
+		else {
+			return "This file does NOT exist.\n";
+		}
 		
+		
+		/*
+		if (isFile(path)) {
+			return "This is a file.\n";
+		}
+		else {
+			return "This is NOT a file.\n";
+		}
+		if (isDir(path)) {
+			return "This is a directory.\n";
+		}
+		else {
+			return "This is NOT a directory.\n";
+		}
+		 */
+
 	}
 	
 	return "expand_path() FAILURE\n";
