@@ -13,7 +13,7 @@ int isCommand(char *);
 void printCommand(int);
 
 //char ** resolve_paths(char**);
-char * resolve_paths(char * arg);
+char * resolve_path(char * arg);
 char * expand_path(char *path, int cmd_p);
 int is_command(char** args, int i);
 int is_builtin_command(char* arg);
@@ -27,35 +27,35 @@ char * getHOME(void);
 char * getPATH(void);
 
 int main(){
-char * line;
-line = malloc(255);
-size_t size = 255;
-char *** arg;
+	char * line;
+	line = malloc(255);
+	size_t size = 255;
+	char *** arg;
 
-while(strcmp(line, "exit") != 0)
-{
-printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
+	while(strcmp(line, "exit") != 0)
+	{
+		printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
 
-getline(&line, &size, stdin);
+		getline(&line, &size, stdin);
 
-arg = parse(line);     
+		arg = parse(line);
 
-int i = 0;
-int a = 0;
+		int i = 0;
+		int a = 0;
 
-while(i < argcount(arg)){
-while(arg[i][a] != 0) {
-//	printf("%d\n", arg[i][a]);
-	printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
-	a++;
+		while(i < argcount(arg)){
+			while(arg[i][a] != 0) {
+				//	printf("%d\n", arg[i][a]);
+				printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+				char * absPath = resolve_path(arg[i][a]);
+				printf("AbsPath: %s\n",absPath);
+				a++;
+			}
+			i++;
+			a=0;
+		}
 	}
-i++;
-a=0;
-}
-
-
-}    
-return 0;
+	return 0;
 }
 
 char *** parse(char * line){
@@ -176,15 +176,13 @@ return 0;
  return args;
  }
  */
-char * resolve_paths(char * arg)
+char * resolve_path(char * arg)
 {
 	// expand each arg to its absolute path
-	int i=0;
-	while (arg!=NULL) {
-		expand_path(arg, 2);
-		i++;
+	if (arg!=NULL) {
+		return expand_path(arg, 2);
 	}
-	return arg;
+	else return "resolve_path() FAILURE";
 }
 
 char * expand_path(char *path, int cmd_p){
@@ -215,24 +213,30 @@ char * expand_path(char *path, int cmd_p){
 			// parse full $PATH into it's separate paths
 			int i=0;
 			while (i<strlen(path_str)) {
-				single_path[single_path_index] = path_str[i];
+				single_path[single_path_index] = path_str[i];	// add current char to single_path
+				single_path_index++;
+				
 				if (path_str[i]==':') {				// if single path found
-					single_path[single_path_index] = 0;	// set last char to NULL
+					single_path[single_path_index-1] = 0;	// set last char to NULL
 					
 					// create test_path
 					strcpy(test_path, single_path);	// test_path = single_path
 					strcat(test_path, "/");			// test_path + '/'
 					strcat(test_path, path);		// test_path + cmd
 					
+					printf("test_path: %s\n", test_path);
+					
 					// check if path contains the command
 					if (is_external_command(test_path)) {
-						return test_path;	// if so, return this path
+						return path = test_path;	// if so, return this path
 					}
 					
 					single_path_index=0;	// reset index of single_path_char
 				}
 				i++;
 			}
+			
+			//return path_str;
 		}
 	}
 	
@@ -241,6 +245,8 @@ char * expand_path(char *path, int cmd_p){
 		// check for arg in current directory
 		
 	}
+	
+	return "expand_path() FAILURE\n";
 	
 } // end of expand_path()
 
