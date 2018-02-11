@@ -71,8 +71,8 @@ itr = start;
 itr++;
 while(*itr != '\0' && *itr != '|'){
 if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
-else if(*itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
-else if(*itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
+else if(*itr != '\n' && *itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
+else if(*itr != '\n' && *itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
 itr++;
 }
 
@@ -113,7 +113,6 @@ if(*itr == ' ' | *itr == '|' | *itr == '\n'){
 } 
 itr++;
 }
-
 return token;
 }
 
