@@ -156,18 +156,32 @@ char * expand_path(char *path, int cmd_p){
 	
 	// Step 3: if argument, get path if it exists
 	else {
+		char abs_path[255];
+		int homeAppended = 0;
+		
+		// if HOME symbol provided
+		if ((path[0]=='~' && path[1]==0) ||
+			(path[0]=='~' && path[1]=='/' && path[2]==0)) {
+			return getHOME();					// return HOME path
+			//strcat(abs_path, getHOME());
+			//homeAppended = 1;
+		}
 		// check for arg in current directory
-		if (fileExists(path)) {				// if file exists in current directory
-			char abs_path[255];
-			strcpy(abs_path, getPWD());	// test_path = single_path
-			strcat(abs_path, "/");		// test_path + '/'
-			strcat(abs_path, path);		// test_path + cmd
+		if (fileExists(path)) {				// if file exists in directory (can have ".." or ".")
+
+			//strcpy(abs_path, getPWD());	// test_path = single_path
+			if (homeAppended=0) {
+				//strcat(abs_path, getPWD());
+			}
+			strcat(abs_path, getPWD());
+			strcat(abs_path, "/");
+			strcat(abs_path, path);
 			//strcpy(abs_path, removeCWDSymbol(abs_path));	// remove any cwd symbol
 			return abs_path;
 			//return "This file exists.\n";
 		}
 		else {
-			return "This file does NOT exist.\n";
+			return "No such file or directory.\n";
 		}
 		
 		
