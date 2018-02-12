@@ -10,6 +10,13 @@
 #define INPUT 1 
 #define OUTPUT 2
 
+
+#define EXIT 0
+#define CD 1
+#define ECHO 2
+#define ETIME 3
+#define IO 4
+
 void control(char *** arg);
 void exeManager(char ** arg);
 void pipeSolo(char *** arg);
@@ -28,6 +35,63 @@ else if(count == 2){pipeSolo(arg);}
 else{pipeManager(arg, count - 1);}
 }
 
+void cd(char ** arg){
+// change directory
+struct stat buf;
+if(arg[1] == 0)
+ {
+  arg[1] = malloc(30);
+  
+  arg[1] = translate("$HOME");
+  setenv("PWD",arg[1],1);
+  chdir(arg[1]);
+  return;
+  // change to $home directory
+ }
+if(arg[2] != 0)
+ {
+  printf("Error: too many arguments for cd\n");
+  return;
+ }
+// else, change to directory specified by arg[1]
+
+stat(arg[1], &buf);
+if((buf.st_mode & S_IFMT) == S_IFDIR){
+setenv("PWD",arg[1],1);
+chdir(arg[1]);}
+else{printf("Invalid directory for cd\n");}
+}
+
+void io(char ** arg)
+{
+int i = 0;
+while(arg[i] != 0){arg[i] = arg[++i];}
+
+}
+
+void etime(char ** arg)
+{
+int i = 0;
+while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
+arg[i] = 0;
+
+struct timeval tv1;
+struct timeval tv2;
+
+gettimeofday(&tv1, NULL);
+
+exeManager(arg);
+gettimeofday(&tv2, NULL);
+
+printf("Elapsed time:%d.%d\n",tv2.tv_sec - tv1.tv_sec,tv2.tv_usec - tv1.tv_usec );
+}
+
+void echo(char ** arg){
+int i = 0;
+while(arg[i] != 0){arg[i] = arg[++i];}
+
+}
+
 void exeManager(char ** arg){ // this functions decides if a command needs io redirection
 int i = 0;
 char * itr = arg[0];
@@ -39,6 +103,33 @@ itr = arg[++i];} // if there is a > or < symbol, set itr to that
   if(strcmp(itr, "<") == 0){redir = INPUT;}
   if(strcmp(itr,">")==0){redir = OUTPUT;}
  }
+if(isBuiltIn(arg[0]) != -1){
+switch(isBuiltIn(arg[0])){
+case EXIT:
+printf("Exiting Shell....\n"); 
+break;
+
+case CD:
+//cd(arg);
+break;
+
+case IO:
+io(arg);
+break;
+
+case ETIME:
+etime(arg);
+break;
+
+case ECHO:
+echo(arg);
+break;
+
+default:
+break;
+}
+return;
+}
 if(redir == 0){myexe(arg);}
 else{
   file = arg[i + 1];

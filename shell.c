@@ -6,11 +6,17 @@
 #include "functionality.c"
 #include "path_res.c"
 
+#define EXIT 0
+#define CD 1
+#define ECHO 2
+#define ETIME 3
+#define IO 4
+
 char * nxtoken(char *);
 char * advance(char *);
 char * firstadvance(char *);
 char *** parse(char *);
-int isCommand(char *);
+int isBuiltIn(char *);
 void printCommand(int);
 
 int main(){
@@ -29,7 +35,8 @@ printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
 
 getline(&line, &size, stdin);
 arg = parse(line);
-	
+
+/*	
 // test code --------------->
 int i = 0;
 int a = 0;
@@ -39,7 +46,8 @@ while(i < argcount(arg)){
 		//	printf("%d\n", arg[i][a]);
 		printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
 		char * absPath = resolve_path(arg[i][a]);
-		printf("AbsPath: %s\n",absPath);
+		if(isCommand(arg[i][a]) != -1 && strcmp(absPath,"expand_path() FAILURE") != 0){strcpy(arg[i][a],absPath);}
+		printf("AbsPath: %s\n",arg[i][a]);
 		a++;
 	}
 	i++;
@@ -48,6 +56,12 @@ while(i < argcount(arg)){
 // <-------------- test code
 
 //while(strcmp(line, "exit") != 0){
+*/
+
+if(strcmp(arg[0][0],"cd") == 0)
+{
+cd(arg[0]);
+}
 
 pid = fork();
 
@@ -160,6 +174,15 @@ itr++;
 return 0;
 }
 
+int isBuiltIn(char * cmd){
+int code = -1;
+if(strcmp(cmd,"exit") == 0){code = EXIT;}
+else if(strcmp(cmd,"cd") == 0){code = CD;}
+else if(strcmp(cmd,"echo") == 0){code = ECHO;}
+else if(strcmp(cmd,"etime") == 0){code = ETIME;}
+else if(strcmp(cmd,"io") == 0){code = IO;}
+return code;
+}
 
 
 void printCommand(int cmdCode){
@@ -184,10 +207,6 @@ void printCommand(int cmdCode){
 		case 4:
 			printf( "io");
 			break;
-		case 5:
-			printf( "ls");
-			break;
-			
 		default:
 			break;
 	}
