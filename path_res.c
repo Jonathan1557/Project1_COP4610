@@ -67,7 +67,7 @@ char * expand_path(char *path, int cmd_p){
 		char envVarOnly[20];
 		int envVarComplete=0;
 		char pathAfterEnvVar[255];
-		char envVarAbs[255];
+		//char envVarAbs[255];
 		
 		int pathAfterEnvVarIndex = 0;
 		
@@ -77,7 +77,7 @@ char * expand_path(char *path, int cmd_p){
 
 			if (path[i]=='/') {		// if '/' seen, envVar is complete
 				envVarComplete=1;
-				printf("/ found. envVarComplete=%d\n", envVarComplete);
+				//printf("/ found. envVarComplete=%d\n", envVarComplete);
 			}
 			if (envVarComplete) {	// if envVar is already done, fill path after
 				pathAfterEnvVar[pathAfterEnvVarIndex] = path[i];
@@ -87,22 +87,25 @@ char * expand_path(char *path, int cmd_p){
 			}
 			else {
 				envVarOnly[i] = path[i];		// add char to envVarOnly
-				printf("envVarOnly[i] = path[i] = %c\n", path[i]);
+				//printf("envVarOnly[i] = path[i] = %c\n", path[i]);
 			}
 			i++;
 		}
+		i=0;
 		if (envVarComplete) {
-			char* envVarAbs = translate(envVarOnly);
-			printf("char* envVarAbs = translate(envVarOnly) = %s\n", envVarAbs);
-			printf("pathAfterEnvVar =  %s\n", pathAfterEnvVar);
+			char envVarAbs[255];
+			strcpy(envVarAbs, translate(envVarOnly));
+			//printf("char* envVarAbs = translate(envVarOnly) = %s\n", envVarAbs);
+			//printf("pathAfterEnvVar =  %s\n", pathAfterEnvVar);
 			strcat(envVarAbs, pathAfterEnvVar);
-			//strcat
+			envVarComplete=0;
+	
 			return envVarAbs;
 		}
 		
 		
 		return translate(path);
-		return "end of env testing\n";
+		//return "end of env testing\n";
 	}
 	
 	// Step 2: if command, find and return path if it exists
