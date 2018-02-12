@@ -64,7 +64,45 @@ char * expand_path(char *path, int cmd_p){
 	
 	// Step 1: if environment variable, return value (path)
 	if (path[0] == '$') {
+		char envVarOnly[20];
+		int envVarComplete=0;
+		char pathAfterEnvVar[255];
+		char envVarAbs[255];
+		
+		int pathAfterEnvVarIndex = 0;
+		
+		// split path into path before
+		int i=0;
+		while (i<strlen(path)) {				// for each char in path
+
+			if (path[i]=='/') {		// if '/' seen, envVar is complete
+				envVarComplete=1;
+				printf("/ found. envVarComplete=%d\n", envVarComplete);
+			}
+			if (envVarComplete) {	// if envVar is already done, fill path after
+				pathAfterEnvVar[pathAfterEnvVarIndex] = path[i];
+				//printf("pathAfterEnvVar[i] = path[i] = %c\n", path[i]);
+				//printf("pathAfterEnvVar = %s\n"), pathAfterEnvVar;
+				pathAfterEnvVarIndex++;
+			}
+			else {
+				envVarOnly[i] = path[i];		// add char to envVarOnly
+				printf("envVarOnly[i] = path[i] = %c\n", path[i]);
+			}
+			i++;
+		}
+		if (envVarComplete) {
+			char* envVarAbs = translate(envVarOnly);
+			printf("char* envVarAbs = translate(envVarOnly) = %s\n", envVarAbs);
+			printf("pathAfterEnvVar =  %s\n", pathAfterEnvVar);
+			strcat(envVarAbs, pathAfterEnvVar);
+			//strcat
+			return envVarAbs;
+		}
+		
+		
 		return translate(path);
+		return "end of env testing\n";
 	}
 	
 	// Step 2: if command, find and return path if it exists
