@@ -87,9 +87,27 @@ printf("Elapsed time:%d.%d\n",tv2.tv_sec - tv1.tv_sec,tv2.tv_usec - tv1.tv_usec 
 }
 
 void echo(char ** arg){
-int i = 0;
-while(arg[i] != 0){arg[i] = arg[++i];}
 
+
+int i = 0;
+while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
+arg[i] = 0;
+
+/*
+i = 0;			// **********
+while(arg[i] != 0){	//***********
+printf("%s\n",arg[i++]);} //*********
+*/
+
+i = 0;
+while(arg[i] != 0){arg[i] = translate(arg[i++]);}
+i=0;
+
+i = 0;
+while(arg[i] != 0){
+printf("%s ",arg[i++]);
+}
+printf("\n");
 }
 
 void exeManager(char ** arg){ // this functions decides if a command needs io redirection
