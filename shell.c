@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "functionality.c"
 #include "path_res.c"
+#include <sys/mman.h>
 
 #define EXIT 0
 #define CD 1
@@ -19,7 +20,11 @@ char *** parse(char *);
 int isBuiltIn(char *);
 void printCommand(int);
 
+
 int main(){
+
+
+int background = 0;
 char * line = "";
 line = malloc(255);
 size_t size = 255;
@@ -28,51 +33,110 @@ char *** arg;
 int status;
 pid_t pid;
 
+int * semaphore = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+int * QN = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);		// QN is the current queue number
+*QN = 0;
+int * pqueue = mmap(NULL, sizeof(int) * 40, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+
+int i;
+
+i = 0;
+while(i < 40){pqueue[i++] = 0;}
 
 LOOP:
-
+background = 0;
 printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
 
 getline(&line, &size, stdin);
 arg = parse(line);
 
-/*	
-// test code --------------->
-int i = 0;
+
+// if last token is &
+i = 0;
+while(arg[i + 1] != 0){i++;}
 int a = 0;
+while(arg[i][a + 1] != 0){a++;}
 
-while(i < argcount(arg)){
-	while(arg[i][a] != 0) {
-		//	printf("%d\n", arg[i][a]);
-		printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
-		char * absPath = resolve_path(arg[i][a]);
-		if(isCommand(arg[i][a]) != -1 && strcmp(absPath,"expand_path() FAILURE") != 0){strcpy(arg[i][a],absPath);}
-		printf("AbsPath: %s\n",arg[i][a]);
-		a++;
-	}
-	i++;
-	a=0;
+if(strcmp(arg[i][a],"&")==0)
+{
+arg[i][a] = 0;
+background = 1;
 }
-// <-------------- test code
 
-//while(strcmp(line, "exit") != 0){
-*/
 
+*semaphore = 0;
 if(strcmp(arg[0][0],"cd") == 0)
 {
 cd(arg[0]);
 }
 
+if(strcmp(arg[0][0],"exit") == 0)
+{
+int done = 1;
+while(done != 0)
+{
+ i = 0;
+ done = 0;
+ while(i < 40)
+  {
+   if(pqueue[i] != 0){done++;}
+   i++;
+  }
+}
+printf("Exiting Shell....\n");
+return;
+}
+
+if(background == 0){
 pid = fork();
 
 if(pid == 0){
 control(arg);
+return;
 }
 else{
 waitpid(pid, &status,0);
+}
 if(strcmp(arg[0][0], "exit") != 0){goto LOOP;}
 }
-//} // end of while loop    
+
+else // background processing
+{
+ pid = fork();
+ if(pid == 0)
+  {
+   int status2;
+   int currentQN = *QN;
+   *QN = *QN + 1;
+   pid_t pid2 =fork();
+
+   if(pid2 == 0)
+    {
+     printf("[%d]  %d       %s",currentQN,getpid(),line);
+     pqueue[currentQN] = getpid();
+     *semaphore = 1;
+     control(arg);
+     return;
+    }
+   else
+    {
+     waitpid(pid2,&status2,0);
+     pqueue[currentQN] = 0;
+     printf("[%d] is done %d    %s",currentQN,pid2,line);
+     printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
+     return;
+    }
+  }
+ else{ //parent
+  while(*semaphore ==0){}
+  goto LOOP;
+ }
+}
+
+
+// wait for all running children
+/*
+*/
 return 0;
 }
 

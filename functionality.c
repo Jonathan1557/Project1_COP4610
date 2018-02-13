@@ -65,8 +65,48 @@ else{printf("Invalid directory for cd\n");}
 void io(char ** arg)
 {
 int i = 0;
-while(arg[i] != 0){arg[i] = arg[++i];}
+while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
+arg[i] = 0;
 
+int status;
+pid_t pid = fork();
+if(pid == 0)
+{
+exeManager(arg);
+}
+else
+ {// parent
+  
+  waitpid(pid,&status,0);
+	//print io data
+
+ char src[50], dest[50];
+
+   strcpy(dest,  "/proc/");
+
+   strcat(dest, src);
+   strcpy(src, "/io");
+
+   printf("Final destination string : |%s|\n", dest);
+
+/*
+ char * narg[50];
+ narg[0] = "/bin/head/";
+ //narg[1] = "/proc/";
+ strcpy(narg[1], "/proc/");
+ printf("%s\n",narg[1]);//**************************
+ printf("TEST\n");//*******************************
+ strcat(narg[1],pid);
+ printf("%s\n",narg[1]);//**************************
+ printf("TEST\n");//*******************************
+ strcat(narg[1],"/io");
+ printf("%s\n",narg[1]);//**************************
+ printf("TEST\n");//*******************************
+ narg[2] = 0;
+ printf("%s\n",narg[1]);//**************************
+ printf("TEST\n");//*******************************
+ exeManager(narg);*/
+ }
 }
 
 void etime(char ** arg)
@@ -93,11 +133,6 @@ int i = 0;
 while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
 arg[i] = 0;
 
-/*
-i = 0;			// **********
-while(arg[i] != 0){	//***********
-printf("%s\n",arg[i++]);} //*********
-*/
 
 i = 0;
 while(arg[i] != 0){arg[i] = translate(arg[i++]);}
@@ -319,8 +354,7 @@ pipe(fd);
 fclose(stdout);				// this section does the first command
 dup2(fd[1],1);
 
-//exeManager(arg[0]);
-myexe(arg[0]);
+exeManager(arg[0]);
 
 close(STDIN_FILENO);			// close stdin and use the pipe for input from now on
 dup2(fd[0],0);
@@ -331,44 +365,9 @@ dup2(save_out, STDOUT_FILENO);		// final command
 
 close(fd[0]);
 close(fd[1]);
-//exeManager(arg[1]);
-myexe(arg[1]);
+exeManager(arg[1]);
 }
 
-/*
-int status;
-pid_t pid = fork();
-if(pid == 0)
- {
-   int fd[2];
-   pipe(fd);
-   int status2;
-int save_in, save_out; // ******************* 
-save_in = dup(STDIN_FILENO); // ******************** this bit comes from stackoverflow
-save_out = dup(STDOUT_FILENO); // ****************
-
-   pid_t pid2 = fork();
-	if(pid2 == 0){
-
-	printf("CLOSING STDOUT\n");//**************************************************************
-	fclose(stdout);				// this section does the output of the first pipe
-	dup2(fd[1],1);
-	
-	exeManager(arg[0]);	
-	}
-
-	else{
-	 waitpid(pid2, &status2, 0);
-
-	open(fileno(stdout));			// re-open stdout
-	dup2(save_out, STDOUT_FILENO);		// final command
-	 fclose(stdin);
-	 dup2(fd[0],0);
-	printf("CLOSING STDIN\n");//**************************************************************
-	 exeManager(arg[1]);
-	}
- }
-*/
 else{
  waitpid(pid, &status, 0);
  }
