@@ -1,0 +1,21 @@
+// test code --------------->
+	int i = 0;
+	int a = 0;
+	
+	while(i < argcount(arg)){
+		while(arg[i][a] != 0) {
+			//	printf("%d\n", arg[i][a]);
+			printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+			char * absPath = resolve_path(arg[i][a], i);
+			if (absPath==NULL) {
+				printf("ERROR: arg invalid");
+				break;
+			}
+			arg[i][a] = abspath;	// store back to arg <----- not tested
+			printf("AbsPath: %s\n",absPath);
+			a++;
+		}
+		i++;
+		a=0;
+	}
+// <-------------- test code
