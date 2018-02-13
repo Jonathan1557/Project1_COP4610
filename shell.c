@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "functionality.c"
-#include "path_res.c"
+//#include "path_res.c"
 #include <sys/mman.h>
 
 #define EXIT 0
@@ -88,7 +88,7 @@ printf("Exiting Shell....\n");
 return;
 }
 
-
+/*
 // test code --------------->
         i = 0;
         a = 0;
@@ -114,7 +114,6 @@ return;
         }
 // <-------------- test code
 
-
 i= 0;
 a= 0;
 while(i < argcount(arg))
@@ -127,6 +126,7 @@ while(i < argcount(arg))
 i++;
 a=0;
 }
+*/
 
 
 if(background == 0){
