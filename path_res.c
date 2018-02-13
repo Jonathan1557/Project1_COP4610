@@ -25,6 +25,7 @@ char * getPWD(void);
 char * getHOME(void);
 char * getPATH(void);
 char * removeCWDSymbol(char* path);
+int myexe_background(char ** arg)
 
 // PATH RESOLTION:
 // MODES (inputs for expansion)
@@ -37,18 +38,18 @@ char * removeCWDSymbol(char* path);
 // use stat(cmd, &buf) to determine if file?, cmd, dir, etc
 // if(buf.st_mode == S_COMMAND)
 // if not a DIR or FILE, then path is incorrect
-/*
+
  char ** resolve_paths(char ** args)
  {
- // expand each arg to its absolute path
- int i=0;
- while (args[i]!=NULL) {
- expand_path(args[i], is_command(args, i));
- i++;
+	 // expand each arg to its absolute path
+	 int i=0;
+	 while (args[i]!=NULL) {
+		 expand_path(args[i], is_command(args, i));
+		 i++;
+	 }
+	 return args;
  }
- return args;
- }
- */
+/*
 char * resolve_path(char * arg)
 {
 	// expand each arg to its absolute path
@@ -57,9 +58,10 @@ char * resolve_path(char * arg)
 	}
 	else return "resolve_path() FAILURE";
 }
-
+*/
 char * expand_path(char *path, int cmd_p){
 	//returns expanded argument, does nothing in many cases (determined by is_command)
+	
 	
 	
 	// Step 1: if environment variable, return value (path)
@@ -103,20 +105,21 @@ char * expand_path(char *path, int cmd_p){
 			return envVarAbs;
 		}
 		
-		
 		return translate(path);
 		//return "end of env testing\n";
 	}
 	
 	// Step 2: if command, find and return path if it exists
-	else if (cmd_p!=0) {
-		if (cmd_p == 1) {	// if built-in command:
+	else if (cmd_p!=0) {	// if a command
+		if (cmd_p==3) {	// if built-in
 			// do not expand command, do not expand arguments
-			// only expand 'cd'
-			
 			return path;
 		}
-		else if (cmd_p == 2) {	// if external command:
+		if (cmd_p==2) {	// if cd
+			//don't expand
+			return path;
+		}
+		else if (cmd_p == 1) {	// if external command:
 			// expand command, not arguments
 			char * path_str = getPATH();	// get list of paths
 			
@@ -211,13 +214,16 @@ int is_command(char** args, int i) {
 	// 0=false, 1=true(built-in), 2=true(external)
 	
 	char * arg = args[i];	// get the arg
-	if (is_builtin_command(arg)>0) {
-		return 1;
+	if (is_builtin_command(arg)>1) {	// if built-in
+		return 3;
 	}
-	else if (is_external_command(arg)){
+	else if (is_builtin_command(arg)==1) { // if cd
 		return 2;
 	}
-	return 0;
+	else if (is_external_command(arg)){	// if external (CAN IT KNOW?)
+		return 1;
+	}
+	return 0;	// if not command
 }
 
 int is_external_command(char* arg) {
@@ -344,5 +350,22 @@ char * removeCWDSymbol(char* path) {
 	strcat(pathMinusCWDSymbol, pathLeadingCWDSymbol);
 	strcat(pathMinusCWDSymbol, pathTrailingCWDSymbol);
 	return pathMinusCWDSymbol;
+}
+
+int myexe_background(char ** arg){
+	
+	int status;
+	pid_t pid = fork();
+	if(pid == -1){return 1;}
+	else if(pid == 0){
+		execv(arg[0], arg);
+	}
+	else{
+		//waitpid(pid, &status,0);	// parent needs to wait
+		waitpid(-1, &status, WNOHANG);
+
+	}
+	
+	return 0;
 }
 
