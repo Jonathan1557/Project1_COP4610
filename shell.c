@@ -39,10 +39,10 @@ int * QN = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOU
 int * pqueue = mmap(NULL, sizeof(int) * 40, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
 
 int i;
-
+int a;
 i = 0;
 while(i < 40){pqueue[i++] = 0;}
-
+char * absPath;
 LOOP:
 background = 0;
 printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
@@ -51,10 +51,11 @@ getline(&line, &size, stdin);
 arg = parse(line);
 
 
+
 // if last token is &
 i = 0;
 while(arg[i + 1] != 0){i++;}
-int a = 0;
+a = 0;
 while(arg[i][a + 1] != 0){a++;}
 
 if(strcmp(arg[i][a],"&")==0)
@@ -86,6 +87,47 @@ while(done != 0)
 printf("Exiting Shell....\n");
 return;
 }
+
+
+// test code --------------->
+        i = 0;
+        a = 0;
+
+        while(i < argcount(arg)){
+                while(arg[i][a] != 0) {
+                        //      printf("%d\n", arg[i][a]);
+                        printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+                        printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+			printf("%d,%d\n",i,a);//***********************************************************
+                        absPath = resolve_path(arg[i][a], a);
+                        printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+                        if (absPath==NULL) {
+                                printf("ERROR: arg invalid");
+                                break;
+                        }
+                        arg[i][a] = absPath;    // store back to arg <----- not tested
+                        printf("AbsPath: %s\n",arg[i][a]);
+                        a++;
+                }
+                i++;
+                a=0;
+        }
+// <-------------- test code
+
+
+i= 0;
+a= 0;
+while(i < argcount(arg))
+{
+ while(arg[i][a] != 0)
+ {
+  printf("arg[%d][%d]: %s\n",i,a,arg[i][a]);
+  a++;
+ }
+i++;
+a=0;
+}
+
 
 if(background == 0){
 pid = fork();
