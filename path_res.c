@@ -12,7 +12,7 @@
 #include <stdlib.h>
 
 //char ** resolve_paths(char**);
-char * resolve_path(char * arg);
+char * resolve_path(char * arg, int);
 char * expand_path(char *path, int cmd_p);
 int is_command(char** args, int i);
 int is_builtin_command(char* arg);
@@ -25,7 +25,7 @@ char * getPWD(void);
 char * getHOME(void);
 char * getPATH(void);
 char * removeCWDSymbol(char* path);
-int myexe_background(char ** arg)
+//int myexe_background(char ** arg);
 
 // PATH RESOLTION:
 // MODES (inputs for expansion)
@@ -38,7 +38,7 @@ int myexe_background(char ** arg)
 // use stat(cmd, &buf) to determine if file?, cmd, dir, etc
 // if(buf.st_mode == S_COMMAND)
 // if not a DIR or FILE, then path is incorrect
-
+/*
  char ** resolve_paths(char ** args)
  {
 	 // expand each arg to its absolute path
@@ -49,16 +49,17 @@ int myexe_background(char ** arg)
 	 }
 	 return args;
  }
-/*
-char * resolve_path(char * arg)
+*/
+char * resolve_path(char * arg, int i)
 {
 	// expand each arg to its absolute path
 	if (arg!=NULL) {
-		return expand_path(arg, 0);
+		return expand_path(arg, i);
 	}
-	else return "resolve_path() FAILURE";
+	//else return "resolve_path() FAILURE";
+	else return NULL;
 }
-*/
+
 char * expand_path(char *path, int cmd_p){
 	//returns expanded argument, does nothing in many cases (determined by is_command)
 	
@@ -110,7 +111,8 @@ char * expand_path(char *path, int cmd_p){
 	}
 	
 	// Step 2: if command, find and return path if it exists
-	else if (cmd_p!=0) {	// if a command
+	//else if (cmd_p!=0) {	// if a command
+	/*
 		if (cmd_p==3) {	// if built-in
 			// do not expand command, do not expand arguments
 			return path;
@@ -119,7 +121,12 @@ char * expand_path(char *path, int cmd_p){
 			//don't expand
 			return path;
 		}
-		else if (cmd_p == 1) {	// if external command:
+	*/
+	if (is_builtin_command(path)>0) {
+		return path;
+	}
+	
+		//else if (cmd_p == 1) {	// if external command:
 			// expand command, not arguments
 			char * path_str = getPATH();	// get list of paths
 			
@@ -154,11 +161,11 @@ char * expand_path(char *path, int cmd_p){
 			}
 			
 			//return path_str;
-		}
-	}
+		//}
+	//}
 	
 	// Step 3: if argument, get path if it exists
-	else {
+	//else {
 		char abs_path[255];
 		int homeAppended = 0;
 		
@@ -176,7 +183,7 @@ char * expand_path(char *path, int cmd_p){
 			if (homeAppended=0) {
 				//strcat(abs_path, getPWD());
 			}
-			strcat(abs_path, getPWD());
+			strcpy(abs_path, getPWD());
 			strcat(abs_path, "/");
 			strcat(abs_path, path);
 			//strcpy(abs_path, removeCWDSymbol(abs_path));	// remove any cwd symbol
@@ -184,7 +191,8 @@ char * expand_path(char *path, int cmd_p){
 			//return "This file exists.\n";
 		}
 		else {
-			return "No such file or directory.\n";
+			//return "No such file or directory.\n";
+			return 0;
 		}
 		
 		
@@ -203,9 +211,10 @@ char * expand_path(char *path, int cmd_p){
 		}
 		 */
 
-	}
+	//}
 	
-	return "expand_path() FAILURE\n";
+	//return "expand_path() FAILURE\n";
+	return NULL;
 	
 } // end of expand_path()
 
@@ -252,10 +261,8 @@ int is_builtin_command(char * arg){
 		return 3;
 	else if(strcmp(arg, "io")==0)
 		return 4;
-	else if(strcmp(arg, "ls")==0)
-		return 5;
 	else if(strcmp(arg, "exit")==0)
-		return 6;
+		return 5;
 	
 	else return 0;		// is an argument
 }
@@ -351,7 +358,7 @@ char * removeCWDSymbol(char* path) {
 	strcat(pathMinusCWDSymbol, pathTrailingCWDSymbol);
 	return pathMinusCWDSymbol;
 }
-
+/*
 int myexe_background(char ** arg){
 	
 	int status;
@@ -368,4 +375,4 @@ int myexe_background(char ** arg){
 	
 	return 0;
 }
-
+*/
