@@ -152,7 +152,7 @@ char * expand_path(char *path, int cmd_p){
 					
 					// check if path contains the command
 					if (is_external_command(test_path) && fileExists(test_path)) {
-						return path = test_path;	// if so, return this path
+						return test_path;	// if so, return this path
 					}
 					
 					single_path_index=0;	// reset index of single_path_char
@@ -192,7 +192,7 @@ char * expand_path(char *path, int cmd_p){
 		}
 		else {
 			//return "No such file or directory.\n";
-			if (cmd_p==0) {	// if 
+			if (cmd_p==0) {	// if
 				return path;
 			}
 			return 0;
