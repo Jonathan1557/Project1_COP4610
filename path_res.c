@@ -192,6 +192,9 @@ char * expand_path(char *path, int cmd_p){
 		}
 		else {
 			//return "No such file or directory.\n";
+			if (cmd_p==0) {	// if 
+				return path;
+			}
 			return 0;
 		}
 		
