@@ -89,31 +89,34 @@ printf("Exiting Shell....\n");								// then print the exit message
 return;
 }
 
-/*
-// test code --------------->
-        i = 0;
-        a = 0;
-
-        while(i < argcount(arg)){
-                while(arg[i][a] != 0) {
-                        //      printf("%d\n", arg[i][a]);
-                        printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
-                        printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+	// test code --------------->
+	i = 0;
+	a = 0;
+	
+	while(i < argcount(arg)){
+		while(arg[i][a] != 0) {
+			//      printf("%d\n", arg[i][a]);
+			printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+			printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
 			printf("%d,%d\n",i,a);//***********************************************************
-                        absPath = resolve_path(arg[i][a], a);
-                        printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
-                        if (absPath==NULL) {
-                                printf("ERROR: arg invalid");
-                                break;
-                        }
-                        arg[i][a] = absPath;    // store back to arg <----- not tested
-                        printf("AbsPath: %s\n",arg[i][a]);
-                        a++;
-                }
-                i++;
-                a=0;
-        }
-// <-------------- test code
+			char middleMan[255];
+			strcpy(middleMan, resolve_path(arg[i][a], a));
+			//absPath = resolve_path(arg[i][a], a);
+			//absPath = middleMan;
+			printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+			if (absPath==NULL) {
+				printf("ERROR: arg invalid");
+				//    break;
+			}
+			//arg[i][a] = absPath;    // store back to arg <----- not tested
+			strcpy(arg[i][a], middleMan);
+			printf("AbsPath: %s\n",arg[i][a]);
+			a++;
+		}
+		i++;
+		a=0;
+	}
+	// <-------------- test code
 
 i= 0;
 a= 0;
