@@ -17,28 +17,27 @@
 #define ETIME 3
 #define IO 4
 
-void control(char *** arg);
-void exeManager(char ** arg);
-void pipeSolo(char *** arg);
-void pipeManager(char *** arg, int i);
-char * translate(char * s);
-int myexe(char ** arg);
-int exeRedirOutput(char ** arg, char * output);
-int exeRedirInput(char ** arg, char * input);
-int argcount(char *** arg);
+void control(char *** arg);				// the main controller function. decides what other functions needs to be called
+void exeManager(char ** arg);				// decides how the current command needs to execute
+void pipeSolo(char *** arg);				// a single pipe
+void pipeManager(char *** arg, int i);			// multiple pipes. i = number of pipes
+char * translate(char * s);				// if s is an envirnomental variable, it returns that value. Otherwise it returns s.
+int myexe(char ** arg);					// basic execution with no redirection
+int exeRedirOutput(char ** arg, char * output);		// execution with output redirection
+int exeRedirInput(char ** arg, char * input);		// execution with input redirection
+int argcount(char *** arg);				// returns the number of commands in arg.
 
 void control(char *** arg){
 int count = argcount(arg);
-if(count == 0){return;}
-if(count == 1){exeManager(arg[0]);}
-else if(count == 2){pipeSolo(arg);}
-else{pipeManager(arg, count - 1);}
+if(count == 0){return;}					// if there are no commands, do nothing
+if(count == 1){exeManager(arg[0]);}			// if there is one command, execute it
+else if(count == 2){pipeSolo(arg);}			// if there are two commands, put them in a single pipe
+else{pipeManager(arg, count - 1);}			// if there are more than two commands, use multiple pipes
 }
 
-void cd(char ** arg){
-// change directory
+void cd(char ** arg){					// change the current directory
 struct stat buf;
-if(arg[1] == 0)
+if(arg[1] == 0)						// if cd has no destination argument, make the destination $HOME
  {
   arg[1] = malloc(30);
   
@@ -48,7 +47,7 @@ if(arg[1] == 0)
   return;
   // change to $home directory
  }
-if(arg[2] != 0)
+if(arg[2] != 0)						// if cd has more than one argument, return an error and stop
  {
   printf("Error: too many arguments for cd\n");
   return;
@@ -57,8 +56,8 @@ if(arg[2] != 0)
 
 stat(arg[1], &buf);
 if((buf.st_mode & S_IFMT) == S_IFDIR){
-setenv("PWD",arg[1],1);
-chdir(arg[1]);}
+setenv("PWD",arg[1],1);					// change $PWD and the working directory to the destination directory
+chdir(arg[1]);}						//
 else{printf("Invalid directory for cd\n");}
 }
 
@@ -109,167 +108,122 @@ else
  }
 }
 
-void etime(char ** arg)
+void etime(char ** arg)						// etime built in
 {
-int i = 0;
-while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
-arg[i] = 0;
+int i = 0;							//
+while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}		// step one: remove "etime" from the arg array
+arg[i] = 0;							//
 
-struct timeval tv1;
-struct timeval tv2;
+struct timeval tv1;						// tv1 is the start time
+struct timeval tv2;						// tv2 is the end time
 
-gettimeofday(&tv1, NULL);
+gettimeofday(&tv1, NULL);					// set tv1
 
-exeManager(arg);
-gettimeofday(&tv2, NULL);
+exeManager(arg);						// execute the function
+gettimeofday(&tv2, NULL);					// set tv2
 
-printf("Elapsed time:%d.%d\n",tv2.tv_sec - tv1.tv_sec,tv2.tv_usec - tv1.tv_usec );
+printf("Elapsed time:%d.%d\n",tv2.tv_sec - tv1.tv_sec,tv2.tv_usec - tv1.tv_usec ); // return the difference between tv2 and tv1
 }
 
-void echo(char ** arg){
+void echo(char ** arg){						// echo built in
+
+int i = 0;							//
+while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}		// step one: remove "echo" from the arg array
+arg[i] = 0;							//
 
 
-int i = 0;
-while(arg[i + 1] != 0){strcpy(arg[i],arg[i + 1]);i++;}
-arg[i] = 0;
-
+i = 0;								// 
+while(arg[i] != 0){arg[i] = translate(arg[i++]);}		//translate any envirnomental variables
 
 i = 0;
-while(arg[i] != 0){arg[i] = translate(arg[i++]);}
-i=0;
-
-i = 0;
-while(arg[i] != 0){
-printf("%s ",arg[i++]);
+while(arg[i] != 0){						//
+printf("%s ",arg[i++]);						// print each argument
 }
-printf("\n");
+printf("\n");							// end with a new line
 }
 
-void exeManager(char ** arg){ // this functions decides if a command needs io redirection
+void exeManager(char ** arg){ 					// this functions decides if a command needs io redirection
 int i = 0;
 char * itr = arg[0];
 char * file;
 int redir = 0;
 while(itr != 0 && (strcmp(itr,">") != 0 && strcmp(itr, "<") != 0)){
-itr = arg[++i];} // if there is a > or < symbol, set itr to that
+itr = arg[++i];} 						// if there is a > or < symbol, set itr to that
  if(itr != 0){
-  if(strcmp(itr, "<") == 0){redir = INPUT;}
-  if(strcmp(itr,">")==0){redir = OUTPUT;}
+  if(strcmp(itr, "<") == 0){redir = INPUT;}			// if there is a < symbol, we will need input redirection,
+  if(strcmp(itr,">")==0){redir = OUTPUT;}			// if there is a > symbol, we will need output redirection
  }
-if(isBuiltIn(arg[0]) != -1){
+if(isBuiltIn(arg[0]) != -1){					// if this is a built in function, use the associated function
 switch(isBuiltIn(arg[0])){
-case EXIT:
-printf("Exiting Shell....\n"); 
+
+case EXIT:							// for exit, just print the exit message. The shell will exit
+printf("Exiting Shell....\n"); 					// after this
 break;
 
-case CD:
-//cd(arg);
+case CD:							// for cd, do nothing. Cd is handled in shell.c
 break;
 
 case IO:
 io(arg);
 break;
 
-case ETIME:
+case ETIME:							// for etime, call the etime function
 etime(arg);
 break;
 
-case ECHO:
+case ECHO:							// for echo, call the echo function
 echo(arg);
 break;
 
 default:
 break;
 }
-return;
+return;								// since it was a built in, return and don't execute anything else
 }
-if(redir == 0){myexe(arg);}
-else{
-  file = arg[i + 1];
-  arg[i] = 0;
+if(redir == 0){myexe(arg);}					// if there's no redirection, call myexe
+else{								// if there is redirection,
+  file = arg[i + 1];						// set the file variable to the redirection file
+  arg[i] = 0;							// and replace the redirection symbol with a null pointer
  }
-if(redir == INPUT){exeRedirInput(arg, file);}
-if(redir == OUTPUT){exeRedirOutput(arg, file);}
+if(redir == INPUT){exeRedirInput(arg, file);}			// if it's input redirection, call exeRedirInput
+if(redir == OUTPUT){exeRedirOutput(arg, file);}			// if it's output redirection, call exeRedirOutput
 }
 
 
-/*
-int main()
-{
-
-struct stat buf;
-
-
-
-char * word = "$HOME";
-
-word = translate(word);
-
-char * command = "/bin/ls";
-char *** arg;
-arg = malloc(2);
-arg[0] = malloc(2);
-arg[1] = malloc(2);
-arg[2] = 0;
-
-arg[0][0] = command;
-//arg[0][1] = "-al";
-arg[0][1] = 0; 
-
-command = "/bin/more";
-arg[1][0] = command;
-arg[1][1] = 0;
-
-stat(command, &buf);
-
-if(buf.st_mode == S_COMMAND)
-{
-//myexe(arg[0]);
-//char * input = "input.txt";
-//exeRedirOutput(arg[0], input);
-//exeRedirInput(arg[1], input);
-//pipeManager(arg, 3);
-pipeSolo(arg);
+char * translate(char * s){					// translate returns the value of an envirnomental variable
+ if(s[0] == '$'){						// if the first char in s is $, it's an envirnomental variable
+ s = getenv(++s);}						// so return the value of that environmental variable
+ else if(s[0] == '~'){						// if s is ~,
+ s = getenv("HOME");}						// return the value of $HOME
+ return s;							// if s isn't an environmental variable, return s unchanged
 }
 
-return 0;
-}
-*/
-
-char * translate(char * s){
- if(s[0] == '$'){
- s = getenv(++s);}
- else if(s[0] == '~'){
- s = getenv("HOME");}
- return s;
-}
-
-int myexe(char ** arg){
-int status;
+int myexe(char ** arg){						// this is the basic execution function
+int status;		
 pid_t pid = fork();
 if(pid == -1){return 1;}
-else if(pid == 0){
-execv(arg[0], arg);
+else if(pid == 0){		// for the child
+execv(arg[0], arg);		// execute arg
 }
 else{
- waitpid(pid, &status,0);	// parent needs to wait
+ waitpid(pid, &status,0);	// parent needs to wait on the child
  }
 
 return 0;
 
 }
 
-int exeRedirInput(char ** arg, char * input){
+int exeRedirInput(char ** arg, char * input){			// this is input redirection
 int status;
 pid_t pid = fork();
 if(pid == -1){return 1;}
 else if(pid == 0){
 fclose(stdin);
 
-FILE * fd = fopen(input, "r");
+FILE * fd = fopen(input, "r");					// open the input file
 
-dup2(fileno(fd), 0);
-execv(arg[0], arg);
+dup2(fileno(fd), 0);						// replace stdin with the input file
+execv(arg[0], arg);						// execute arg
 }
 else{
  waitpid(pid, &status,0);	// parent needs to wait
@@ -279,17 +233,17 @@ return 0;
 }
 
 
-int exeRedirOutput(char ** arg, char * output){
+int exeRedirOutput(char ** arg, char * output){			// this is output redirection
 int status;
 pid_t pid = fork();
 if(pid == -1){return 1;}
 else if(pid == 0){
 fclose(stdout);
 
-FILE * fd = fopen(output, "w");
-dup2(fileno(fd), 1);
+FILE * fd = fopen(output, "w");					// open the output file
+dup2(fileno(fd), 1);						// replace stdout with the output file
 
-execv(arg[0], arg);
+execv(arg[0], arg);						// execute arg
 }
 else{
  waitpid(pid, &status,0);	// parent needs to wait
@@ -303,9 +257,9 @@ int status;
 pid_t pid = fork();
 if(pid == 0){
 
-int save_in, save_out; // ******************* 
-save_in = dup(STDIN_FILENO); // ******************** this bit comes from stackoverflow
-save_out = dup(STDOUT_FILENO); // ****************
+int save_in, save_out; 				// 
+save_in = dup(STDIN_FILENO); 			//  this bit comes from stackoverflow
+save_out = dup(STDOUT_FILENO); 			//  it saves stdin and stdout for later
 
 int fd[2];
 pipe(fd);
@@ -345,36 +299,36 @@ void pipeSolo(char *** arg){
 int status;
 pid_t pid = fork();
 if(pid == 0){
-int save_in, save_out; // ******************* 
-save_in = dup(STDIN_FILENO); // ******************** this bit comes from stackoverflow
-save_out = dup(STDOUT_FILENO); // ****************
+int save_in, save_out; 				//  
+save_in = dup(STDIN_FILENO); 			// this bit comes from stackoverflow
+save_out = dup(STDOUT_FILENO); 			// it saves stdin and stdout for later
 
-int fd[2];
-pipe(fd);
+int fd[2];				//
+pipe(fd);				// create the pipe
+
 fclose(stdout);				// this section does the first command
-dup2(fd[1],1);
-
-exeManager(arg[0]);
+dup2(fd[1],1);				// replace stdout with the pipe
+exeManager(arg[0]);			// and execute the first command
 
 close(STDIN_FILENO);			// close stdin and use the pipe for input from now on
-dup2(fd[0],0);
+dup2(fd[0],0);				//
 
 
 open(fileno(stdout));			// re-open stdout
-dup2(save_out, STDOUT_FILENO);		// final command
+dup2(save_out, STDOUT_FILENO);		// for the final command
 
 close(fd[0]);
 close(fd[1]);
-exeManager(arg[1]);
+exeManager(arg[1]);			// execute the final command
 }
 
 else{
- waitpid(pid, &status, 0);
+ waitpid(pid, &status, 0);		// the parent waits for the child to finish
  }
 
 }
 
-int argcount(char *** arg){
+int argcount(char *** arg){		// return the number of commands in arg
 int count = 0;
 int i = 0;
 while(arg[i++] != 0){count++;}

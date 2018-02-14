@@ -18,7 +18,6 @@ char * advance(char *);
 char * firstadvance(char *);
 char *** parse(char *);
 int isBuiltIn(char *);
-void printCommand(int);
 
 
 int main(){
@@ -33,58 +32,60 @@ char *** arg;
 int status;
 pid_t pid;
 
-int * semaphore = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
-int * QN = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);		// QN is the current queue number
-*QN = 0;
-int * pqueue = mmap(NULL, sizeof(int) * 40, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);
+int * semaphore = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);   // psuedo-semaphore for background processing
+int * QN = mmap(NULL, sizeof(int), PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0);     	    // QN is the current queue number
+*QN = 0;											    // QN starts at 0
+int * pqueue = mmap(NULL, sizeof(int) * 40, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS, -1, 0); // pqueue is the list of running processes
 
 int i;
 int a;
 i = 0;
-while(i < 40){pqueue[i++] = 0;}
-char * absPath;
-LOOP:
-background = 0;
-printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));
+while(i < 40){pqueue[i++] = 0;}			// start each member of pqueue as 0 (nothing running)
 
-getline(&line, &size, stdin);
-arg = parse(line);
+char * absPath;				
+
+LOOP:											// LOOP is the main loop for the shell.
+background = 0;										// we start off assuming foreground processing
+printf("%s@%s :: %s =>",getenv("USER"), getenv("MACHINE"),getenv("PWD"));		// print the prompt
+
+getline(&line, &size, stdin);								// get the user input
+arg = parse(line);									// and parse it
 
 
 
 // if last token is &
-i = 0;
-while(arg[i + 1] != 0){i++;}
-a = 0;
-while(arg[i][a + 1] != 0){a++;}
+i = 0;											//
+while(arg[i + 1] != 0){i++;}								//
+a = 0;											// find the last token.
+while(arg[i][a + 1] != 0){a++;}								//
 
-if(strcmp(arg[i][a],"&")==0)
-{
-arg[i][a] = 0;
-background = 1;
+if(strcmp(arg[i][a],"&")==0)								// if the last token is &,
+{											//
+arg[i][a] = 0;										// remove & from command list
+background = 1;										// and say we will do background processing
 }
 
+*semaphore = 0;										// set our lock to 0
 
-*semaphore = 0;
-if(strcmp(arg[0][0],"cd") == 0)
-{
-cd(arg[0]);
-}
+if(strcmp(arg[0][0],"cd") == 0)								//
+{											// if the command is cd,
+cd(arg[0]);										// call the cd function
+}											//
 
-if(strcmp(arg[0][0],"exit") == 0)
-{
-int done = 1;
-while(done != 0)
-{
- i = 0;
- done = 0;
- while(i < 40)
-  {
-   if(pqueue[i] != 0){done++;}
-   i++;
+if(strcmp(arg[0][0],"exit") == 0)							// if the commmand is exit, 
+{											
+int done = 1;										//
+while(done != 0)									//
+{											// wait for each child process 
+ i = 0;											// to finish
+ done = 0;										//
+ while(i < 40)										//
+  {											//
+   if(pqueue[i] != 0){done++;}								//
+   i++;											//
   }
 }
-printf("Exiting Shell....\n");
+printf("Exiting Shell....\n");								// then print the exit message
 return;
 }
 
@@ -129,11 +130,11 @@ a=0;
 */
 
 
-if(background == 0){
+if(background == 0){							// foreground processing
 pid = fork();
 
 if(pid == 0){
-control(arg);
+control(arg);								// control will execute arg properly
 return;
 }
 else{
@@ -142,7 +143,7 @@ waitpid(pid, &status,0);
 if(strcmp(arg[0][0], "exit") != 0){goto LOOP;}
 }
 
-else // background processing
+else 									// background processing
 {
  pid = fork();
  if(pid == 0)
@@ -176,9 +177,6 @@ else // background processing
 }
 
 
-// wait for all running children
-/*
-*/
 return 0;
 }
 
@@ -197,32 +195,30 @@ if(*itr == '|'){cmdcount++;};
 itr++;
 }
 
-arg = malloc(200); // we know how many commands there are, so allocate space for them
-arg[cmdcount] = 0;	// terminate the args with a null pointer;
+arg = malloc(200); 					// allocate space
+arg[cmdcount] = 0;					// terminate the args with a null pointer;
 itr = line;
 int i = 0;
 int a;
 char * start;
-char * nxtstart = line;	// this is where the next command starts
+char * nxtstart = line;					// this is where the next command starts
 
 while(i < cmdcount){
 argcount = 1;
-start  = firstadvance(nxtstart);		// this is where this command starts
+start  = firstadvance(nxtstart);			// this is where this command starts
 itr = start;
 itr++;
-while(*itr != '\0' && *itr != '|'){
-if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}
-else if(*itr != '\n' && *itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}
-else if(*itr != '\n' && *itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}
+while(*itr != '\0' && *itr != '|'){										// 
+if(*itr == '<' | *itr == '>' | *itr == '&'){argcount++;}							// count the arguments
+else if(*itr != '\n' && *itr != ' ' && *(itr - 1) == ' ' && *itr != '|'){argcount++;}				//
+else if(*itr != '\n' && *itr != ' ' && (*(itr -1) == '>' | *(itr - 1) == '<') && *itr != '|'){argcount++;}	//
 itr++;
 }
 
-//arg[i] = malloc(argcount + 1);					//set arg[i] to hold all its arguments
 arg[i] = malloc(200);					//set arg[i] to hold all its arguments
 arg[i][argcount] = 0; 						// terminate it with a null pointer
 nxtstart = itr;							// this is where the next command starts
 
-//arg[i][0] = start;
 itr = start;
 
 // set each argument in arg[i]
@@ -257,7 +253,7 @@ itr++;
 return token;
 }
 
-char * firstadvance(char * line){
+char * firstadvance(char * line){				// make sure there isn't any whitespace or & before first command
 char * itr = line;
 while(itr != 0){
   if(*itr != ' ' && *itr != '&' && *itr != '|'){return itr;}
@@ -291,31 +287,5 @@ return code;
 }
 
 
-void printCommand(int cmdCode){
-	// print the name of the command based on the command code recived
-	printf( "\nCommand Received: ");
-	switch (cmdCode) {
-		case -1:
-			printf( "none");
-			break;
-		case 0:
-			printf( "exit");
-			break;
-		case 1:
-			printf( "cd");
-			break;
-		case 2:
-			printf( "echo");
-			break;
-		case 3:
-			printf( "etime");
-			break;
-		case 4:
-			printf( "io");
-			break;
-		default:
-			break;
-	}
-}
 
 
