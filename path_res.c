@@ -151,7 +151,7 @@ char * expand_path(char *path, int cmd_p){
 					strcat(test_path, "/");			// test_path + '/'
 					strcat(test_path, path);		// test_path + cmd
 					
-					printf("test_path: %s\n", test_path);
+					//printf("test_path: %s\n", test_path);
 					
 					// check if path contains the command
 					if (is_external_command(test_path) && fileExists(test_path)) {
