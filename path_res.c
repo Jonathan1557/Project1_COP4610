@@ -193,15 +193,15 @@ char * expand_path(char *path, int cmd_p){
 			return abs_path;
 			//return "This file exists.\n";
 		}
-		else {
+		//else {
 			//return "No such file or directory.\n";
-			if (cmd_p==0) {	// if
+			//if (cmd_p==0) {	// if
 				char returnPath[255];
 				strcpy(returnPath, path);
 				return returnPath;
 				//return path;
-			}
-			return 0;
+			//}
+			//return 0;
 		}
 		
 		
