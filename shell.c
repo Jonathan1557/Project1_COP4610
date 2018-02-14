@@ -173,7 +173,7 @@ while(i < argcount(arg))
 i++;
 a=0;
 }
-*/
+
 
 
 if(background == 0){							// foreground processing
