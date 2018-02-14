@@ -89,6 +89,7 @@ printf("Exiting Shell....\n");								// then print the exit message
 return;
 }
 
+	/*
 	// test code --------------->
 	i = 0;
 	a = 0;
@@ -117,6 +118,48 @@ return;
 		a=0;
 	}
 	// <-------------- test code
+	*/
+	
+	// test code --------------->
+	i = 0;
+	a = 0;
+	
+	while(i < argcount(arg)){
+		while(arg[i][a] != 0) {
+			printf("%d\n", arg[i][a]);
+			printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
+			printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+			printf("%d,%d\n",i,a);//***********************************************************
+	//char singleArg[255];
+	char middleMan[255];
+	//strcpy(singleArg, arg[i][a]);
+	//char * middleMan;
+	memset(middleMan, '\0', sizeof(middleMan));
+	//strncpy(middleMan, resolve_path(arg[i][a], a), strlen(resolve_path(arg[i][a], a)));
+	printf("before\n");
+	//middleMan = resolve_path(arg[i][a], a);
+	strcpy(middleMan, resolve_path(arg[i][a], a));
+	//strcpy(middleMan, resolve_path(singleArg, a));
+	printf("after\n");
+	//absPath = resolve_path(arg[i][a], a);
+	//absPath = middleMan;
+	printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+	if (absPath==NULL) {
+		printf("ERROR: arg invalid");
+		break;
+	}
+	//                        arg[i][a] = absPath;    // store back to arg <----- not tested
+	//memset(middleMan, '\0', sizeof(middleMan));
+	strcpy(arg[i][a], middleMan);
+	//arg[i][a] = middleMan;
+	printf("AbsPath: %s\n",arg[i][a]);
+	a++;
+}
+i++;
+a=0;
+}
+
+// <-------------- test code
 
 i= 0;
 a= 0;
