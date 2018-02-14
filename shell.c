@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "functionality.c"
-//#include "path_res.c"
+#include "path_res.c"
 #include <sys/mman.h>
 
 #define EXIT 0
@@ -130,36 +130,36 @@ return;
 			printf("Arg[%d][%d]: %s\n",i,a,arg[i][a]);
 			printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
 			printf("%d,%d\n",i,a);//***********************************************************
-	//char singleArg[255];
-	char middleMan[255];
-	//strcpy(singleArg, arg[i][a]);
-	//char * middleMan;
-	memset(middleMan, '\0', sizeof(middleMan));
-	//strncpy(middleMan, resolve_path(arg[i][a], a), strlen(resolve_path(arg[i][a], a)));
-	printf("before\n");
-	//middleMan = resolve_path(arg[i][a], a);
-	strcpy(middleMan, resolve_path(arg[i][a], a));
-	//strcpy(middleMan, resolve_path(singleArg, a));
-	printf("after\n");
-	//absPath = resolve_path(arg[i][a], a);
-	//absPath = middleMan;
-	printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
-	if (absPath==NULL) {
-		printf("ERROR: arg invalid");
-		break;
+			//char singleArg[255];
+			char middleMan[255];
+			//strcpy(singleArg, arg[i][a]);
+			//char * middleMan;
+			memset(middleMan, '\0', sizeof(middleMan));
+			//strncpy(middleMan, resolve_path(arg[i][a], a), strlen(resolve_path(arg[i][a], a)));
+			printf("before\n");
+			//middleMan = resolve_path(arg[i][a], a);
+			strcpy(middleMan, resolve_path(arg[i][a], a));
+			//strcpy(middleMan, resolve_path(singleArg, a));
+			printf("after\n");
+			//absPath = resolve_path(arg[i][a], a);
+			//absPath = middleMan;
+			printf("AbsPath[0][0]: %s\n",arg[0][0]); // ************************************************
+			if (absPath==NULL) {
+				printf("ERROR: arg invalid");
+				break;
+			}
+			//                        arg[i][a] = absPath;    // store back to arg <----- not tested
+			//memset(middleMan, '\0', sizeof(middleMan));
+			strcpy(arg[i][a], middleMan);
+			//arg[i][a] = middleMan;
+			printf("AbsPath: %s\n",arg[i][a]);
+			a++;
+		}
+		i++;
+		a=0;
 	}
-	//                        arg[i][a] = absPath;    // store back to arg <----- not tested
-	//memset(middleMan, '\0', sizeof(middleMan));
-	strcpy(arg[i][a], middleMan);
-	//arg[i][a] = middleMan;
-	printf("AbsPath: %s\n",arg[i][a]);
-	a++;
-}
-i++;
-a=0;
-}
-
-// <-------------- test code
+	
+	// <-------------- test code
 
 i= 0;
 a= 0;
